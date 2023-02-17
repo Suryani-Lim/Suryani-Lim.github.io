@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="assessment_1_topics_files/yui_combo.css">
+    <script id="firstthemesheet" type="text/css">/** Required in order to fix style inclusion problems in IE with YUI **/</script><link rel="stylesheet" type="text/css" href="http://moodle.federation.edu.au/theme/styles.php/bootstrap/1488749417/all">
+    <style>
+    body {
+        text-align:  center;
+    }
+    .topic {
+        width: 20em;
+        border: 1px solid #000;
+        margin: 2em;
+        padding: 1em;
+        text-align: center;
+        box-shadow: rgba(0,0,0,0.5) 0 0 10px;
+
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .line5 {
+        font-style: italic;
+        font-size: 1.1em;
+    }
+
+    .line1, .line3 {
+        font-size: 1.4em;
+    }
+
+    .line2, .line4 {
+        font-size: 2em;
+        font-weight: bold;
+    }
+
+    .line1, .line2, .line3, .line4, .line5, .line6 {
+        line-height: 1.2;
+    }
+    </style>
+</head>
+<body>
+<h1 id="title"></h1>
+
+<div id="topics">
+
+</div>
+<div id="for"></div>
+
+<script id="topic_template" type="text/template">
+    <div class="topic">
+        <div class="line1">Disrupting {the}</div>
+        <div class="line2 industry">{industry}</div>
+        <div class="line3">with</div>
+        <div class="line4 tech">{tech}</div>        
+    </div>
+</script>
+
+<script>
+    var course = 0;
+
+    var techs = [
+        'drones',
+        'DeepFakes',
+        '3D printing',
+        'Internet of Things',
+        'Internet of Materials',
+        'virtual reality',
+        'mixed reality',
+        'robotic process automation',
+        '5G Internet',
+        'Brain-Computer Interfaces',
+        'chatbots',
+        'biometrics',
+        'GPT-3',
+        'blockchain',
+        'machine vision',
+        'affective computing',
+        'wearable technology',  
+    ];
+
+    // add a - (minus sign) at the front to avoid
+    // automatically adding "The ... Industry"
+    var industries = [
+    
+        // media
+        'music recording',
+        'live music',
+        'television',
+        'newspaper',
+        'comic book',
+        'news',
+        '-graphic design',
+        'publishing',
+        'advertising',
+
+        // civil
+        '-waste management',
+        '-water processing',
+        
+        // food
+        'fast food',
+        'beer',
+        'wine',
+        'snack food',
+        'hospitality',
+        'meat packing',
+        'soft drink',
+
+        // manufacture/big industry
+        'automotive',
+        '-public transport',
+        'aerospace',
+        'shipping',
+        'goods transport',
+        'electronics',
+
+        // sales
+        'clothing',
+        'jewellery',
+        'footwear',
+        'collectibles',
+        '-board games',
+        'retail',
+        '-supermarkets',
+        'real estate',
+        'insurance',
+        'pharmaceutical',
+        'beauty',
+
+        // agri
+        'agriculture',
+        'dairy',
+        'construction',
+        'clean energy',
+        'timber',
+
+        // resources
+        'mining',
+        'coal',
+        'steel',
+
+        // finance
+        'banking',
+        'insurance',
+        'gambling',
+
+        // health and sport
+        '-hospitals',
+        '-dentistry',
+        '-team sports',
+        '-athletics',
+        '-surgery',
+        'fitness',
+        'weight-loss',
+        'veterinary',
+
+        // tourism
+        'luxury tourism',
+        'medical tourism',
+        '-backpacking',
+
+        // other stuff
+        'security',
+
+    ];
+
+</script>
+
+<script>
+// https://github.com/davidbau/xsrand/blob/master/xor128.js
+// A Javascript implementaion of the "xor128" prng algorithm by
+// George Marsaglia.  See http://www.jstatsoft.org/v08/i14/paper
+
+    (function(global, module, define) {
+
+        function XorGen(seed) {
+        var me = this;
+
+        // Set up generator function.
+        me.next = function() {
+            var t = me.x ^ (me.x << 11);
+            me.x = me.y;
+            me.y = me.z;
+            me.z = me.w;
+            return me.w ^= (me.w >> 19) ^ t ^ (t >> 8);
+        };
+
+        function init(me, seed) {
+            me.x = seed;
+            me.y = 0;
+            me.z = 0;
+            me.w = 0;
+            // Discard an initial batch of 64 values.
+            for (var k = 64; k > 0; --k) {
+            me.next();
+            }
+        }
+
+        init(me, seed);
+        }
+
+        function impl(seed, opts) {
+        if (!seed) seed = +(new Date);
+        var xg = new XorGen(seed),
+            state = opts && opts.state,
+            prng = function() { return (xg.next() >>> 0) / ((1 << 30) * 4); };
+        prng.double = function() {
+            do {
+            var top = xg.next() >>> 11,
+                bot = (xg.next() >>> 0) / ((1 << 30) * 4),
+                result = (top + bot) / (1 << 21);
+            } while (result === 0);
+            return result;
+        };
+        prng.int32 = xg.next;
+        if (state) {
+            if (state.X) copy(state, xg);
+            prng.state = function() { return copy(xg, {}); }
+        }
+        return prng;
+        }
+
+        if (module && module.exports) {
+        module.exports = impl;
+        } else if (define && define.amd) {
+        define(function() { return impl; });
+        } else {
+        this.xor128 = impl;
+        }
+
+    })(
+    this,
+    (typeof module) == 'object' && module,    // present in node.js
+    (typeof define) == 'function' && define   // present with an AMD loader
+    );
+
+
+    // https://github.com/darkskyapp/string-hash/blob/master/index.js
+    function hash(str) {
+    var hash = 5381,
+        i    = str.length;
+
+    while(i) {
+        hash = (hash * 33) ^ str.charCodeAt(--i);
+    }
+
+    /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+    * integers. Since we want the results to be always positive, convert the
+    * signed int to an unsigned by doing an unsigned bitshift. */
+    return hash >>> 0;
+    }
+
+    function fixupIndustry(t) {
+        if(t.substring(0,1) !== '-') {
+            t = 'the ' + titleCase(t) + ' Industry';
+        } else {
+            t = titleCase(t.substring(1));
+        }
+        return t;
+    }
+
+    for (var i = 0; i < techs.length; i++) {
+       techs[i] = titleCase(techs[i]);
+    }
+
+    for (var i = 0; i < industries.length; i++) {
+        industries[i] = fixupIndustry(industries[i]);
+    }
+
+    function titleCase(s) {
+        return s.split(/\s+/)
+            .map(function(s){
+                if(s.toLowerCase() !== s) {
+                    return s
+                } else {
+                    return s.substring(0,1).toUpperCase() + s.substring(1);
+                }
+            })
+            .join(' ');
+    }
+
+
+    function fail() {
+        return {error: "Hmm. There was a problem"};
+    }
+
+    function shuffle(ar, rnd) {
+        for (var i = ar.length - 1; i > 0; i--) {
+            var j = rnd.int32() % i;
+
+            var t = ar[i];
+            ar[i] = ar[j];
+            ar[j] = t;
+        }
+    }
+
+    function shuffled(ar, rnd) {
+        var a = ar.slice();
+        shuffle(a, rnd);
+        return a;
+    }
+
+    function tpl(tech, industry) {
+        var template = document.getElementById('topic_template').textContent;
+        return template
+            .replace('{tech}', tech)
+            .replace('{industry}', industry.substring(0, 3) === 'the' ? industry.substring(4) : industry)
+            .replace('{the}', industry.substring(0, 3) === 'the' ? 'the' : '')
+    }
+
+    function parse_params() {
+        var q = window.location.search;
+        var params = {};
+        if(q && q.length > 1) {
+            var s = q.substring(1).split('&');
+
+            for (var i = 0; i < s.length; i++) {
+                var param = s[i].split('=');
+                if(param.length > 1) {
+                    params[param[0]] = param[1];
+                }
+            }
+        }
+        return params;
+    }
+
+    function check_params(params) {
+        var keys = Object.keys(params).sort();
+        if(keys.length < 2) {    
+            return false;
+        }
+
+        if((keys.indexOf('u') < 0) || (keys.indexOf('c') < 0)) {
+            return false;
+        }
+
+        if(params.u.length == 0 || params.c.length == 0) {
+            return false;
+        }
+
+        return true;
+        
+    }
+
+    function do_it(params)
+    {
+        var h = hash(params.u + '-' + params.c);
+
+        document.getElementById('for').textContent = 
+            'Generated for student id: ' + params.u;
+
+        var rnd = xor128(h);
+
+        var topicsToGenerate = 2;
+
+        var techs_shuffled = shuffled(techs, rnd);
+        var industries_shuffled = shuffled(industries, rnd);
+
+        topics.innerHTML = '';
+
+        for (var i = 0; i < topicsToGenerate; i++) {
+           topics.innerHTML += tpl(techs_shuffled[i], industries_shuffled[i]);
+        }
+
+        return true;
+        
+    }
+
+    var topics = document.getElementById('topics');
+
+    var params = parse_params();
+
+    if(check_params(params))
+    {
+        do_it(params);
+
+        if(!(/^\d+$/.test(params.u))) {
+            document.body.appendChild(document.createElement('hr'));
+            var user_input = document.createElement('input');
+            user_input.id = 'custom_user';
+            user_input.addEventListener('input', function(ev) {
+                do_it(
+                    {
+                        c: params.c,
+                        u: user_input.value.trim()
+                    }
+                );
+            });
+            var label = document.createElement('label');
+            label.htmlFor = user_input.id;
+            label.textContent = "Show the options for:";
+            document.body.appendChild(label);
+            document.body.appendChild(user_input);
+        }
+    } else {
+        document.getElementById('title').innerHTML = 'Sorry! This page only works embedded in Moodle';
+    }
+
+</script>
+
+
+</body></html>
